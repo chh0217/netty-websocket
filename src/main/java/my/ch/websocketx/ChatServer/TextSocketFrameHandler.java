@@ -29,7 +29,8 @@ public class TextSocketFrameHandler extends SimpleChannelInboundHandler<TextWebS
     protected void channelRead0(ChannelHandlerContext ctx, TextWebSocketFrame msg) throws Exception {
         String u = ctx.channel().remoteAddress() + ":";
 //        group.write(u.getBytes());
-        group.write(msg.retain());
+//        group.write(msg.retain());
+        group.write(new TextWebSocketFrame(u+msg.text()));
         group.flush();
     }
 }
