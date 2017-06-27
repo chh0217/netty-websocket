@@ -13,11 +13,13 @@
  * License for the specific language governing permissions and limitations
  * under the License.
  */
-package my.ch.websocketx.server;
+package my.ch.websocketx.ChatServer;
 
 import io.netty.bootstrap.ServerBootstrap;
 import io.netty.channel.Channel;
 import io.netty.channel.EventLoopGroup;
+import io.netty.channel.group.ChannelGroup;
+import io.netty.channel.group.DefaultChannelGroup;
 import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.nio.NioServerSocketChannel;
 import io.netty.handler.logging.LogLevel;
@@ -25,6 +27,7 @@ import io.netty.handler.logging.LoggingHandler;
 import io.netty.handler.ssl.SslContext;
 import io.netty.handler.ssl.SslContextBuilder;
 import io.netty.handler.ssl.util.SelfSignedCertificate;
+import io.netty.util.concurrent.ImmediateEventExecutor;
 import io.netty.util.internal.logging.InternalLoggerFactory;
 import io.netty.util.internal.logging.Log4J2LoggerFactory;
 import org.slf4j.Logger;
@@ -49,11 +52,11 @@ import org.slf4j.LoggerFactory;
  * <li>Firefox 11+ (RFC 6455 aka draft-ietf-hybi-thewebsocketprotocol-17)
  * </ul>
  */
-public final class WebSocketServer {
-
+public final class ChatWebSocketServer {
+    private static final ChannelGroup group = new DefaultChannelGroup(ImmediateEventExecutor.INSTANCE);
     static final boolean SSL = System.getProperty("ssl") != null;
     static final int PORT = Integer.parseInt(System.getProperty("port", SSL? "8443" : "8080"));
-    private static final Logger logger = LoggerFactory.getLogger(WebSocketServer.class);
+    private static final Logger logger = LoggerFactory.getLogger(ChatWebSocketServer.class);
 
 
     public static void main(String[] args) throws Exception {
@@ -74,7 +77,7 @@ public final class WebSocketServer {
             b.group(bossGroup, workerGroup)
              .channel(NioServerSocketChannel.class)
              .handler(new LoggingHandler(LogLevel.INFO))
-             .childHandler(new WebSocketServerInitializer(sslCtx));
+             .childHandler(new ChatSocketServerInitializer(sslCtx,group));
 
             Channel ch = b.bind(PORT).sync().channel();
             System.out.println("Open your web browser and navigate to " +

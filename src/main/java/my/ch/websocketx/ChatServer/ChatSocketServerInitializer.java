@@ -13,10 +13,11 @@
  * License for the specific language governing permissions and limitations
  * under the License.
  */
-package my.ch.websocketx.server;
+package my.ch.websocketx.ChatServer;
 
 import io.netty.channel.ChannelInitializer;
 import io.netty.channel.ChannelPipeline;
+import io.netty.channel.group.ChannelGroup;
 import io.netty.channel.socket.SocketChannel;
 import io.netty.handler.codec.http.HttpObjectAggregator;
 import io.netty.handler.codec.http.HttpServerCodec;
@@ -26,14 +27,17 @@ import io.netty.handler.ssl.SslContext;
 
 /**
  */
-public class WebSocketServerInitializer extends ChannelInitializer<SocketChannel> {
+public class ChatSocketServerInitializer extends ChannelInitializer<SocketChannel> {
 
     private static final String WEBSOCKET_PATH = "/websocket";
 
     private final SslContext sslCtx;
 
-    public WebSocketServerInitializer(SslContext sslCtx) {
+    private final ChannelGroup group;
+
+    public ChatSocketServerInitializer(SslContext sslCtx,ChannelGroup group) {
         this.sslCtx = sslCtx;
+        this.group = group;
     }
 
     @Override
@@ -42,11 +46,12 @@ public class WebSocketServerInitializer extends ChannelInitializer<SocketChannel
         if (sslCtx != null) {
             pipeline.addLast(sslCtx.newHandler(ch.alloc()));
         }
+//        pipeline.addLast("logging",new LoggingHandler(LogLevel.INFO));
         pipeline.addLast(new HttpServerCodec());
         pipeline.addLast(new HttpObjectAggregator(65536));
         pipeline.addLast(new WebSocketServerCompressionHandler());
         pipeline.addLast(new WebSocketServerProtocolHandler(WEBSOCKET_PATH, null, true));
         pipeline.addLast(new WebSocketIndexPageHandler(WEBSOCKET_PATH));
-        pipeline.addLast(new WebSocketFrameHandler());
+        pipeline.addLast(new TextSocketFrameHandler(group));
     }
 }
